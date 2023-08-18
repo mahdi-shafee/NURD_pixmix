@@ -47,7 +47,7 @@ def get_dataloaders(args, exact=False):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        testsetout = NuisanceDataWrapper(root="/places/ood1/placesbg",
+        testsetout = NuisanceDataWrapper(root="content/Spurious_OOD/datasets/placesbg",
                                     transform=large_transform)
         testloaderOut = torch.utils.data.DataLoader(testsetout, batch_size=args.batch_size, shuffle=False,
                                                     num_workers=multiprocessing.cpu_count())
