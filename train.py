@@ -670,7 +670,7 @@ def main():
                 wandb.run.summary["best_val_rw_acc"] = rw_acc
 
     # evaluate on balanced test dataset
-    #model = get_model(args)
+    model = get_model(args)
     loss, acc, rw_acc = validate(balanced_test_loader, model, criterion, args.epochs + args.reweight_epochs + 1, log, reweight_args, joint_indep_args)
     if not args.local_testing:
         wandb.run.summary["best_bal_test_acc"] = acc
