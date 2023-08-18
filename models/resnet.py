@@ -483,7 +483,7 @@ def get_model(args):
         elif args.model_file is not None:
             model_file = args.model_file
         else:
-            directory = "/scratch/lhz209/nood/nuisance_ood/src/supervised/checkpoints/{in_dataset}/{name}/{exp}/".format(
+            directory = "checkpoints/{in_dataset}/{name}/{exp}/".format(
                 in_dataset=args.in_dataset, name=args.project_name, exp=args.exp_name)
             model_file = os.path.join(directory, f"checkpoint_main.pth.tar")
             print(model_file)
