@@ -468,7 +468,7 @@ def eval_energy():
     if args.model_file is not None:
         cpts_path = args.model_file
         checkpoint = torch.load(cpts_path, map_location=device)
-        state_dict = checkpoint['model_dict']
+        state_dict = checkpoint['state_dict_model']
         rename_key = lambda k: k.replace("featurizer.network.", "").replace("classifier", "linear")
         state_dict = {rename_key(key): value for key, value in state_dict.items()
             if not key.startswith("network") and "num_batches_tracked" not in key}
