@@ -486,7 +486,6 @@ def get_model(args):
             directory = "checkpoints/{in_dataset}/{name}/{exp}/".format(
                 in_dataset=args.in_dataset, name=args.project_name, exp=args.exp_name)
             model_file = os.path.join(directory, f"checkpoint_main.pth.tar")
-            print(model_file)
     if args.in_dataset == "cifar10":
         num_classes = 10
         img_side = 32
@@ -518,7 +517,7 @@ def get_model(args):
         if args.fractal_db:
             model.load_state_dict(torch.load(model_file, map_location=torch.device(device)))
         elif args.model_file is not None:
-            state_dict = torch.load(model_file, map_location=torch.device(device))["model_dict"]
+            state_dict = torch.load(model_file, map_location=torch.device(device))["state_dict_model"]
             rename_key = lambda k: k.replace("featurizer.network.", "").replace("classifier", "linear")
             state_dict = {rename_key(key): value for key, value in state_dict.items()
                 if not key.startswith("network") and "num_batches_tracked" not in key}
