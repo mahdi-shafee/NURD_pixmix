@@ -31,7 +31,7 @@ class WaterbirdDataset(Dataset):
             (1, 1): 3
         }
         self.split = split
-        self.root_dir  = "content/Spurious_OOD/datasets"
+        self.root_dir  = "content/Spurious_OOD"
         self.dataset_name = "waterbird_complete"+"{:0.2f}".format(args.data_label_correlation)[-2:]+"_forest2water2"
         self.dataset_dir = os.path.join(self.root_dir, self.dataset_name)
         if not os.path.exists(self.dataset_dir):
