@@ -504,7 +504,6 @@ def get_model(args):
     orig = img_side == 224
     if args.model_arch == "resnet18":
         model = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes, orig=orig)
-        print(model)
     elif args.model_arch == "resnet50_fractaldb":
         model = resnet50_fractaldb()
     elif args.model_arch == "resnet50":
