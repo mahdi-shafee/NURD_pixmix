@@ -51,6 +51,19 @@ def get_dataloaders(args, exact=False):
                                     transform=large_transform)
         testloaderOut = torch.utils.data.DataLoader(testsetout, batch_size=args.batch_size, shuffle=False,
                                                     num_workers=multiprocessing.cpu_count())
+    elif args.out_dataset == 'places365diffusion':
+        scale = 256.0/224.0
+        target_resolution = (224, 224)
+        large_transform = transforms.Compose([
+            transforms.Resize((int(target_resolution[0]*scale), int(target_resolution[1]*scale))),
+            transforms.CenterCrop(target_resolution),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        testsetout = NuisanceDataWrapper(root="/content/gdrive/MyDrive/placesbg_diffusion/placesbg",
+                                    transform=large_transform)
+        testloaderOut = torch.utils.data.DataLoader(testsetout, batch_size=args.batch_size, shuffle=False,
+                                                    num_workers=multiprocessing.cpu_count())
     elif args.out_dataset == "cmnist-other":
         testloaderOut = get_cmnist_dataloader(args, data_label_correlation=args.data_label_correlation, split="ood", root_dir="/scratch/lhz209/nood/data")
     elif args.out_dataset == "cmnist-other-blue":
