@@ -509,9 +509,6 @@ def eval_energy():
         print(auc)
 
 if __name__ == '__main__':
-    model = get_model(args)
-    model = model.to(device)	
-    return model
     eval_logits()        
     eval_msp_and_odin()
     eval_energy()
