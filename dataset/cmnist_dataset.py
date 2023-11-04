@@ -120,7 +120,7 @@ class ColoredMNIST(datasets.VisionDataset):
       binary_label = label
 
       # Flip label with 25% probability
-      if not self.deterministic_label:
+      if not True:
         if np.random.uniform() < 0.25:
             binary_label = binary_label ^ 1
 
