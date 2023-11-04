@@ -28,6 +28,7 @@ parser = argparse.ArgumentParser(description=' use resnet (pretrained)')
 
 parser.add_argument('--in_dataset', default="celebA", type=str, help='in-distribution dataset e.g. IN-9')
 parser.add_argument('--model_arch', default='resnet18', type=str, help='model architecture e.g. resnet50')
+parser.add_argument('--mix_appr', default='None', type=str)
 parser.add_argument('--print_freq', '-p', default=10, type=int,
                     help='print frequency (default: 10)')
 # ID train & val batch size
