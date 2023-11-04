@@ -270,11 +270,14 @@ def train(model, train_loader, val_loader, criterion, optimizer, epoch, log, rew
             # unfreeze main model
             model = unfreeze_model(model)
 
-        inputs, targets_a, targets_b, lam = mixup_data(inputs, targets, 1, True)
-        inputs, targets_a, targets_b = map(Variable, (inputs, targets_a, targets_b))
+        if args.mix_app == 'Mixup':
+            inputs, targets_a, targets_b, lam = mixup_data(inputs, targets, 1, True)
+            inputs, targets_a, targets_b = map(Variable, (inputs, targets_a, targets_b))
         
         activations, outputs = model(inputs)
-        losses = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
+        losses = criterion(inputs, targets)
+        if args.mix_app == 'Mixup':
+            losses = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
 
         # measure accuracy and record loss
         acc, loss, top1 = record_metrics(acc, loss, top1, inputs, outputs, targets, losses)
