@@ -275,9 +275,24 @@ def train(model, train_loader, val_loader, criterion, optimizer, epoch, log, rew
             inputs, targets_a, targets_b = map(Variable, (inputs, targets_a, targets_b))
             activations, outputs = model(inputs)
             losses = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
-        else:
+          
+        elif args.mix_appr == 'CutMix':
+            lam = np.random.beta(1.0, 1.0)
+            rand_index = torch.randperm(inputs.size()[0]).cuda()
+            targets_a = targets
+            targets_b = targets[rand_index]
+            bbx1, bby1, bbx2, bby2 = rand_bbox(inputs.size(), lam)
+            inputs[:, :, bbx1:bbx2, bby1:bby2] = inputs[rand_index, :, bbx1:bbx2, bby1:bby2]
+            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (inputs.size()[-1] * inputs.size()[-2]))
+            activations, outputs = model(inputs)
+            losses = criterion(outputs, targets_a) * lam + criterion(outputs, targets_b) * (1 - lam)
+            
+        elif args.mix_appr == 'None':
             activations, outputs = model(inputs)
             losses = criterion(inputs, targets)
+          
+        else:
+            raise Exception('unknown Mix Approach.')
 
         # measure accuracy and record loss
         acc, loss, top1 = record_metrics(acc, loss, top1, inputs, outputs, targets, losses)
