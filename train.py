@@ -20,6 +20,7 @@ from models.resnet import load_model, CriticModel, get_model, SimpleClassifier
 from utils import AverageMeter, save_checkpoint, accuracy
 from dataset.cub_dataset import WaterbirdDataset
 from dataset.cmnist_dataset import ColoredMNIST
+from torch.autograd import Variable
 import math
 from datetime import datetime
 
@@ -199,6 +200,26 @@ def log_metrics(log, epoch, batch_time, loss, top1, acc, rw_loss=None, rw_acc=No
                 f"{split} rw_acc": rw_acc.avg}, step=epoch)
 
 
+def mixup_data(x, y, alpha=1.0, use_cuda=True):
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    batch_size = x.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).cuda()
+    else:
+        index = torch.randperm(batch_size)
+
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+
 def train(model, train_loader, val_loader, criterion, optimizer, epoch, log, reweight_args={}, joint_indep_args={}, args=None):
     """Train for one epoch on the training set"""
     batch_time = AverageMeter()
@@ -248,9 +269,11 @@ def train(model, train_loader, val_loader, criterion, optimizer, epoch, log, rew
             # unfreeze main model
             model = unfreeze_model(model)
 
-        activations, outputs = model(inputs)
+        inputs, targets_a, targets_b, lam = mixup_data(inputs, targets, 1, True)
+        inputs, targets_a, targets_b = map(Variable, (inputs, targets_a, targets_b))
         
-        losses = criterion(outputs, targets)
+        activations, outputs = model(inputs)
+        losses = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
 
         # measure accuracy and record loss
         acc, loss, top1 = record_metrics(acc, loss, top1, inputs, outputs, targets, losses)
