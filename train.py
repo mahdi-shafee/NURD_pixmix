@@ -23,6 +23,7 @@ from dataset.cmnist_dataset import ColoredMNIST
 from torch.autograd import Variable
 import math
 from datetime import datetime
+import pixmix_utils as utils
 
 parser = argparse.ArgumentParser(description=' use resnet (pretrained)')
 
@@ -583,6 +584,57 @@ def adjust_learning_rate(args, optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
+def pixmix(orig, mixing_pic, preprocess):
+  
+    mixings = utils.mixings
+    tensorize, normalize = preprocess['tensorize'], preprocess['normalize']
+    if np.random.random() < 0.5:
+        mixed = tensorize(augment_input(orig))
+    else:
+        mixed = tensorize(orig)
+  
+    for _ in range(np.random.randint(args.k + 1)):
+    
+        if np.random.random() < 0.5:
+            aug_image_copy = tensorize(augment_input(orig))
+        else:
+            aug_image_copy = tensorize(mixing_pic)
+
+        mixed_op = np.random.choice(mixings)
+        mixed = mixed_op(mixed, aug_image_copy, args.beta)
+        mixed = torch.clip(mixed, 0, 1)
+
+    return normalize(mixed)
+
+class RandomImages300K(torch.utils.data.Dataset):
+    def __init__(self, file, transform):
+        self.dataset = np.load(file)
+        self.transform = transform
+
+    def __getitem__(self, index):
+        img = self.dataset[index]
+        return self.transform(img), 0
+
+    def __len__(self):
+        return len(self.dataset)
+
+class PixMixDataset(torch.utils.data.Dataset):
+    """Dataset wrapper to perform PixMix."""
+
+    def __init__(self, dataset, mixing_set, preprocess):
+        self.dataset = dataset
+        self.mixing_set = mixing_set
+        self.preprocess = preprocess
+
+    def __getitem__(self, i):
+        x, y = self.dataset[i]
+        rnd_idx = np.random.choice(len(self.mixing_set))
+        mixing_pic, _ = self.mixing_set[rnd_idx]
+        return pixmix(x, mixing_pic, self.preprocess), y
+
+    def __len__(self):
+        return len(self.dataset)
+
 
 def main():
 
@@ -607,6 +659,13 @@ def main():
     train_dataset = dataset_class(args, "train")
     val_dataset = dataset_class(args, "val")
     test_dataset = dataset_class(args, "test")
+
+    if args.mix_appr == 'PixMix':
+        mixing_set = RandomImages300K(file='300K_random_images.npy', transform=transforms.Compose(
+            [transforms.ToTensor(), transforms.ToPILImage(), transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip()]))
+
+        train_data = PixMixDataset(train_data, mixing_set, {'normalize': normalize, 'tensorize': to_tensor})
 
     kwargs = {'pin_memory': True, 'num_workers': 8, 'drop_last': True}
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=False, **kwargs)
