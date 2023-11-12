@@ -677,10 +677,7 @@ def main():
     test_transform = transforms.Compose(
       [transforms.ToTensor(), normalize])
 
-    if args.mix_appr == 'PixMix':
-        mixing_set = datasets.ImageFolder('/content/fractals_and_fvis/fractals/images', transform=mixing_set_transform)
-
-        train_data = PixMixDataset(train_data, mixing_set, {'normalize': normalize, 'tensorize': to_tensor})
+    
 
     kwargs = {'pin_memory': True, 'num_workers': 8, 'drop_last': True}
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=False, **kwargs)
