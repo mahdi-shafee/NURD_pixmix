@@ -24,6 +24,9 @@ from torch.autograd import Variable
 import math
 from datetime import datetime
 import pixmix_utils as utils
+from torchvision import datasets
+from torchvision import transforms
+
 
 parser = argparse.ArgumentParser(description=' use resnet (pretrained)')
 
