@@ -663,10 +663,17 @@ def main():
     val_dataset = dataset_class(args, "val")
     test_dataset = dataset_class(args, "test")
 
+    mixing_set_transform = transforms.Compose(
+      [transforms.Resize(36), 
+       transforms.RandomCrop(32)])
+
+    to_tensor = transforms.ToTensor()
+    normalize = transforms.Normalize([0.5] * 3, [0.5] * 3)
+    test_transform = transforms.Compose(
+      [transforms.ToTensor(), normalize])
+
     if args.mix_appr == 'PixMix':
-        mixing_set = RandomImages300K(file='300K_random_images.npy', transform=transforms.Compose(
-            [transforms.ToTensor(), transforms.ToPILImage(), transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip()]))
+        mixing_set = datasets.ImageFolder('', transform=mixing_set_transform)
 
         train_data = PixMixDataset(train_data, mixing_set, {'normalize': normalize, 'tensorize': to_tensor})
 
