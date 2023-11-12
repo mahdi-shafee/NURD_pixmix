@@ -638,6 +638,11 @@ class PixMixDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.dataset)
 
+def augment_input(image):
+    aug_list = utils.augmentations_all if args.all_ops else utils.augmentations
+      op = np.random.choice(aug_list)
+    return op(image.copy(), args.aug_severity)
+
 
 def main():
 
@@ -673,7 +678,7 @@ def main():
       [transforms.ToTensor(), normalize])
 
     if args.mix_appr == 'PixMix':
-        mixing_set = datasets.ImageFolder('', transform=mixing_set_transform)
+        mixing_set = datasets.ImageFolder('/content/fractals_and_fvis/fractals/images', transform=mixing_set_transform)
 
         train_data = PixMixDataset(train_data, mixing_set, {'normalize': normalize, 'tensorize': to_tensor})
 
