@@ -311,7 +311,7 @@ def train(model, train_loader, val_loader, criterion, optimizer, epoch, log, rew
             
         elif args.mix_appr == 'None':
             activations, outputs = model(inputs)
-            losses = criterion(inputs, targets)
+            losses = criterion(outputs, targets)
           
         else:
             raise Exception('unknown Mix Approach.')
@@ -640,7 +640,7 @@ class PixMixDataset(torch.utils.data.Dataset):
 
 def augment_input(image):
     aug_list = utils.augmentations_all if args.all_ops else utils.augmentations
-      op = np.random.choice(aug_list)
+    op = np.random.choice(aug_list)
     return op(image.copy(), args.aug_severity)
 
 
