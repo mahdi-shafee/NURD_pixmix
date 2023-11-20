@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import torchvision.transforms as transforms
 import multiprocessing
+from torchvision import datasets
+import pixmix_utils as utils
 
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
@@ -31,7 +33,7 @@ class WaterbirdDataset(Dataset):
             (1, 1): 3
         }
         self.split = split
-        self.root_dir  = "content/Spurious_OOD"
+        self.root_dir  = "content/Spurious_OOD/datasets"
         self.dataset_name = "waterbird_complete"+"{:0.2f}".format(args.data_label_correlation)[-2:]+"_forest2water2"
         self.dataset_dir = os.path.join(self.root_dir, self.dataset_name)
         if not os.path.exists(self.dataset_dir):
@@ -60,11 +62,13 @@ class WaterbirdDataset(Dataset):
         self.filename_array = self.metadata_df['img_filename'].values
         self.transform = get_transform_cub(self.split=='train')
         self.exact = args.exact
+        self.mixing_set = datasets.ImageFolder("/content/fractals_and_fvis", transform=self.transform)
 
         group_counts = self.metadata_df.groupby(["y", "place"]).split.count().to_dict()
         # weights should be inverse of count proportions
         weights = {k: len(self.metadata_df) / v for k, v in group_counts.items()}
         self.weights = {k: v / sum(weights.values()) for k, v in weights.items()}
+        self.mixings = utils.mixings
 
     def __len__(self):
         return len(self.filename_array)
@@ -76,7 +80,16 @@ class WaterbirdDataset(Dataset):
             self.dataset_dir,
             self.filename_array[idx])
         img = Image.open(img_filename).convert('RGB')
+        rnd_idx = np.random.choice(len(self.mixing_set))
+        mixing_pic, _ = self.mixing_set[rnd_idx]
+
+        mixed = mixing_pic
         img = self.transform(img)
+
+        for _ in range(np.random.randint(4 + 1)):
+            mixed_op = np.random.choice(self.mixings)
+            mixed = mixed_op(mixed, img, 1)
+        
         if self.exact:
             return img, y, place
         else:
